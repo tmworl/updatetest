@@ -7,6 +7,7 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, Platform, View, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import platformDetection from '../../platform/detection';
 import visualProperties from '../../platform/visualProperties';
 import BackdropMaterial, { MATERIAL_TYPES } from '../../components/BackdropMaterial';
@@ -118,6 +119,34 @@ const getIconName = (routeName) => {
 };
 
 /**
+ * Determines if the tab bar should be hidden for certain routes
+ * Enhanced implementation for React Navigation 7 compatible with nested navigators
+ * 
+ * @param {Object} route - Current route object
+ * @returns {Object|undefined} Style object with display: 'none' or undefined
+ */
+const getTabBarVisibility = (route) => {
+  // Screens where tab bar should be hidden
+  const hiddenRoutes = [
+    'CourseSelector', 
+    'Tracker', 
+    'ScorecardScreen'
+  ];
+
+  // Get the current focused route name within nested navigator
+  // This handles the case when we're in a nested stack (e.g., HomeStack)
+  const routeName = getFocusedRouteNameFromRoute(route);
+  
+  // If the focused route is in our hidden routes list, hide the tab bar
+  if (routeName && hiddenRoutes.includes(routeName)) {
+    return { display: 'none' };
+  }
+  
+  // Default: show the tab bar
+  return undefined;
+};
+
+/**
  * Create complete tab bar configuration with material integration
  * Provides platform-specific styling with full M3 implementation when supported
  * 
@@ -186,37 +215,6 @@ const getTabBarConfig = (route) => {
       }
     } : {}),
   };
-};
-
-/**
- * Determines if the tab bar should be hidden for certain routes
- * 
- * @param {Object} route - Current route object
- * @returns {Object|undefined} Style object with display: 'none' or undefined
- */
-const getTabBarVisibility = (route) => {
-  const routeName = route.name;
-  
-  // Hide the tab bar on these screens
-  const hiddenRoutes = [
-    'CourseSelector', 
-    'Tracker', 
-    'ScorecardScreen'
-  ];
-  
-  // Check nested navigation structure
-  if (route?.state?.routes) {
-    const currentRoute = route.state.routes[route.state.index];
-    if (hiddenRoutes.includes(currentRoute.name)) {
-      return { display: 'none' };
-    }
-  }
-  
-  if (hiddenRoutes.includes(routeName)) {
-    return { display: 'none' };
-  }
-  
-  return undefined;
 };
 
 /**
